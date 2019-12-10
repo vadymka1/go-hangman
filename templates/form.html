@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    {{range .view}}
+        <title>{{.Title}}</title>
+    {{end}}
+</head>
+<body>
+    {{range .view}}
+        <h1>{{.Title}}</h1>
+    {{end}}
+    <input type="text" name="word" value="">
+    <form enctype="multipart/form-data" action="http://localhost:9090/hangman" method="post">
+        <input type="text" hidden value="{{ .data.view.Word}}">
+        <input type="text" name="char" size="1">
+        <input type="submit" value="upload" />
+    </form>
+</body>
+</html>
