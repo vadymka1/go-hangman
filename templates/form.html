@@ -8,8 +8,8 @@
     <body>
         <div>
             <p>{{ .View.Title}}</p>
-            <form action="http://localhost:9090/hangman" method="post" {{if .Over}} hidden {{end}}>
-                <input type="text" name="wordMask" value="{{.WordMask}}" readonly>
+            <form action="http://localhost:9090/hangman" method="post" >
+                <input type="text" name="wordMask" value="{{.WordMask}}" readonly maxlength="{{len .WordMask}}">
                 <input type="text" name="word" hidden value="{{ .View.Word}}" />
                 <div>
                     <label>Char</label>
@@ -17,14 +17,20 @@
                 </div>
                 <div>
                     <label>Errors (max 6)</label>
-                    <input type="text" name="error" aria-label="errors"  size="2" value="{{.Errors}}" />
+                    <input type="number" name="errors" aria-label="errors"  maxlength="2" value="{{.Errors}}"/>
                 </div>
                 <div>
                     <label>Wrong chars</label>
-                    <input type="text" name="errorChar" size="2" value="{{.Chars.ErrorChar}}"/>
+                    <input type="text" name="errorChar" size="2" max="6" value="{{.ErrorChars}}"/>
                 </div>
                 <div>
-                    <input type="submit" value="submit" />
+                    {{if and (lt .Errors 6) (not .Win)}}
+                        <input type="submit" value="submit" />
+                    {{else}} {{if .Win}}
+                        <p>You win</p>
+                    {{else}}
+                        <p>Game over</p>
+                    {{end}} {{end}}
                 </div>
             </form>
         </div>

@@ -9,10 +9,6 @@ import (
 	"strings"
 )
 
-type Chars struct{
-	RightChar, ErrorChar string
-}
-
 type ViewData struct{
 	Word, Title string
 	CharCounter int
@@ -20,19 +16,21 @@ type ViewData struct{
 
 type AllData struct {
 	View  	 ViewData
-	Chars 	 Chars
-	Errors   int
+	//Chars 	 Chars
+	Errors   int64
+	ErrorChars string
 	WordMask string
-	Over     bool
+	Win bool
 }
 
-var over bool
-
-var title = "Hangman"
+var (
+	title = "Hangman"
+	win = false
+	errorChars = ""
+)
 
 func ShowForm (w http.ResponseWriter, r *http.Request) {
 
-	over = false
 
 	Word := fake.Word()
 
@@ -46,13 +44,10 @@ func ShowForm (w http.ResponseWriter, r *http.Request) {
 			title,
 			CharNumbers,
 		},
-		Chars:Chars{
-			"",
-			"",
-		},
+		ErrorChars:errorChars,
 		Errors:0,
 		WordMask:WordMask,
-		Over:over,
+		Win:win,
 	}
 
 	fmt.Println(data)
@@ -80,44 +75,39 @@ func CheckData (w http.ResponseWriter, r *http.Request) {
 	}
 
 	word := r.FormValue("word")
-
 	workMask := r.FormValue("wordMask")
-
-	errors, err := strconv.Atoi(r.FormValue("errors"))
-
-	if err != nil {
-		errors = 0
-	}
-
-	if errors > 5 {
-		over = true
-	}
-
+	errors, _ := strconv.ParseInt(r.FormValue("errors"), 10, 0)
 	errorChar := r.FormValue("errorChar")
 	respChar := r.FormValue("char")
 	rightChar := r.FormValue("rightChar")
 
-	fmt.Println(workMask, word, errors, errorChar, respChar, rightChar)
-
-
-
-	for k, v := range workMask {
-		fmt.Println("key : %d, value : %s\n", k, string(v))
+	if respChar == "" {
+		panic("char mustnt be empty")
 	}
 
+	errorExist := true
+
 	for k, char := range word {
+
 		if string(char) == respChar {
-			ch := string(char)
-			workMask[k] = string(char)
+
+			workMask = replaceAtindex(workMask, char, k)
 
 			rightChar = rightChar + string(char)
-		} else {
-			errors++
+
+			errorExist = false
 		}
 	}
 
-	for key, value := range r.Form{
-		fmt.Printf("%s = %s\n", key, value)
+	checkWorkMask := strings.Index(workMask, "_")
+
+	if checkWorkMask == -1 {
+		win = true
+	}
+
+	if errorExist {
+		errorChar = errorChar + respChar
+		errors++
 	}
 
 	data := AllData {
@@ -126,12 +116,30 @@ func CheckData (w http.ResponseWriter, r *http.Request) {
 			title,
 			len(word),
 		},
-		Chars:Chars{
-			rightChar,
-			errorChar,
-		},
-		Errors:0,
+		ErrorChars:errorChar,
+		Errors:errors,
 		WordMask:workMask,
-		Over:over,
+		Win:win,
 	}
+
+	t, err := template.ParseFiles("templates/form.html")
+
+	if err != nil {
+		panic(err)
+	}
+
+	err = t.Execute(w, data)
+
+}
+
+func replaceAtindex(in string, r rune, i int) string {
+
+	out := []rune(in)
+
+	if out[i] == r {
+		return string(out)
+	}
+
+	out[i] = r
+	return string(out)
 }
