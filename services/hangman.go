@@ -16,7 +16,6 @@ type ViewData struct{
 
 type AllData struct {
 	View  	 ViewData
-	//Chars 	 Chars
 	Errors   int64
 	ErrorChars string
 	WordMask string
