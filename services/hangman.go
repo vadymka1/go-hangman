@@ -2,7 +2,7 @@ package services
 
 import (
 	"fmt"
-	"github.com/icrowley/fake"
+	//"github.com/icrowley/fake"
 	"html/template"
 	"net/http"
 	"strconv"
@@ -30,8 +30,8 @@ var (
 
 func ShowForm (w http.ResponseWriter, r *http.Request) {
 
-
-	Word := fake.Word()
+	//Word := fake.Word()
+	Word := GetWord(2)
 
 	CharNumbers := len(Word)
 

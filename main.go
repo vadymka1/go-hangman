@@ -21,6 +21,8 @@ type Server struct {
 
 var port = ":9090"
 
+var word string
+
 func StartServer() *Server {
 
 	srv := &Server{
@@ -47,6 +49,8 @@ func StartServer() *Server {
 func main()  {
 
 	server := StartServer()
+
+	word = services.GetWord(1)
 
 	done := make(chan bool)
 	go func() {
