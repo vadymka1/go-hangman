@@ -2,11 +2,12 @@ package services
 
 import (
 	"fmt"
-	//"github.com/icrowley/fake"
 	"html/template"
+	"math/rand"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type ViewData struct{
@@ -30,8 +31,10 @@ var (
 
 func ShowForm (w http.ResponseWriter, r *http.Request) {
 
-	//Word := fake.Word()
-	Word := GetWord(2)
+	rand.Seed(time.Now().UnixNano())
+	randD := rand.Intn(2 - 1) + 1
+
+	Word := GetWord(randD)
 
 	CharNumbers := len(Word)
 
@@ -105,8 +108,10 @@ func CheckData (w http.ResponseWriter, r *http.Request) {
 	}
 
 	if errorExist {
-		errorChar = errorChar + respChar
-		errors++
+		if !strings.ContainsAny(errorChar, respChar) {
+			errorChar = errorChar + respChar
+			errors++
+		}
 	}
 
 	data := AllData {

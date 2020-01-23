@@ -2,50 +2,73 @@ package services
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
+	"github.com/joho/godotenv"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 )
 
-type Parser interface {
-	GetWord()
-}
-
 func GetWord(variant int) string {
+
 	if variant == 1 {
-		return getWordFromApi("https://wordsapiv1.p.rapidapi.com/words/hatchback/typeOf")
+		return getWordFromApi()
 	}
 
 	if variant == 2 {
-		//return scrapeFromUrl(os.Getenv("url_path"))
-		return scrapeFromUrl("http://watchout4snakes.com/wo4snakes/Random/RandomWord")
+		return scrapeFromUrl()
 	}
 
 	return ""
 }
 
-func getWordFromApi(url string) string {
-	fmt.Println(url)
-		req, _ := http.NewRequest("GET", url, nil)
+func getWordFromApi() string {
 
-		req.Header.Add("x-rapidapi-host", "wordsapiv1.p.rapidapi.com")
-		req.Header.Add("x-rapidapi-key", "1dab3637c5msh61ac6090e769afcp12dcb8jsnf9245d848de4")
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
-		res, _ := http.DefaultClient.Do(req)
+	url := os.Getenv("api_path")
+	key := os.Getenv("rapid_api")
 
-		defer res.Body.Close()
-		body, _ := ioutil.ReadAll(res.Body)
+	fmt.Print("This from api")
+	fmt.Printf("url is %s and key is %s", url, key)
 
-		fmt.Println(res)
-		fmt.Println(string(body))
+	var jsonMap map[string]interface{}
 
-		return  string(body)
+	req, _ := http.NewRequest("GET", url, nil)
+
+	req.Header.Add("x-rapidapi-host", "wordsapiv1.p.rapidapi.com")
+	req.Header.Add("x-rapidapi-key", key)
+
+	res, _ := http.DefaultClient.Do(req)
+
+	defer res.Body.Close()
+	body, _ := ioutil.ReadAll(res.Body)
+
+	if err := json.Unmarshal(body, &jsonMap); err != nil {
+		panic(err)
+	}
+
+	fmt.Println(jsonMap["word"].(string))
+
+	return jsonMap["word"].(string)
 }
 
-func scrapeFromUrl(url string) string{
+func scrapeFromUrl() string{
 
-	fmt.Println(url)
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	url := os.Getenv("url_path")
+
+	fmt.Print("This from crawler")
+	fmt.Printf("url is %s \n", url)
 
 	data := []byte(`{"LastWord":""}`)
 	r := bytes.NewReader(data)

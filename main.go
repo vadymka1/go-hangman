@@ -62,7 +62,6 @@ func main()  {
 		done <- true
 	}()
 
-	//wait shutdown
 	server.WaitShutdown()
 
 	<-done
@@ -73,8 +72,6 @@ func main()  {
 func (s *Server) ShutdownHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Shutdown server"))
 
-	//Do nothing if shutdown request already issued
-	//if s.reqCount == 0 then set to 1, return true otherwise false
 	if !atomic.CompareAndSwapUint32(&s.reqCount, 0, 1) {
 		log.Printf("Shutdown through API call in progress...")
 		return
@@ -89,7 +86,6 @@ func (s *Server) WaitShutdown() {
 	irqSig := make(chan os.Signal, 1)
 	signal.Notify(irqSig, syscall.SIGINT, syscall.SIGTERM)
 
-	//Wait interrupt or shutdown request through /shutdown
 	select {
 	case sig := <-irqSig:
 		log.Printf("Shutdown request (signal: %v)", sig)
@@ -99,11 +95,9 @@ func (s *Server) WaitShutdown() {
 
 	log.Printf("Stoping http server ...")
 
-	//Create shutdown context with 10 second timeout
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	//shutdown the server
 	err := s.Shutdown(ctx)
 	if err != nil {
 		log.Printf("Shutdown request error: %v", err)
